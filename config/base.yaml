@@ -1,0 +1,46 @@
+# ============================================================
+# quant-lab 五要素基线配置（Step 0 锁定值，改动需全链路同步）
+# ============================================================
+meta:
+  project: quant-lab
+  purpose: 量化策略学习系统（研究/教育用途，非实盘）
+  base_currency: USD
+
+# ① 标的池与市场
+universe:
+  market: US
+  stock_pool: sp500_sample      # 标普500成分抽样（见 data/universe.py）
+  sample_size: 150              # 学习期默认抽样数；改 500 即为全成分（注意生存者偏差）
+  sample_seed: 42
+  benchmark_etfs: [SPY, QQQ, TLT, GLD, IWM]
+  data_source: yfinance         # 免费；限制见 README「数据缺口」
+
+# ② 交易频率
+trading:
+  rebalance: weekly             # weekly（周五收盘）| monthly（月末）
+  execution_price: close        # 调仓日收盘价成交（T 日信号 T 日收盘成交，见引擎说明）
+
+# ③ 资金规模与容量约束
+capital:
+  initial_cash: 100000          # 虚拟资金 $100,000
+  max_participation: 0.10       # 单标的日成交量参与率上限 10%（容量红线）
+  allow_short: false            # 仅做多
+  max_leverage: 1.0             # 无杠杆
+
+# ④ 回测区间与成本假设
+backtest:
+  start: "2010-01-01"
+  end: "2025-12-31"
+  in_sample_end: "2019-12-31"   # 样本内 2010–2019；样本外 2020–2025
+  cost:
+    commission_per_share: 0.005 # 佣金 $0.005/股（IBKR 真实档）
+    commission_min: 1.0         # 单笔最低 $1
+    slippage_bps: 5.0           # 单边滑点 5bp（万分之五）
+
+# 策略默认参数（敏感性分析会扰动这些值）
+strategy:
+  name: multifactor
+  factors: [momentum, low_vol, reversal, trend]
+  factor_weights: equal         # 等权合成 z-score
+  top_n: 30                     # 持仓数
+  weighting: equal              # 持仓内等权
