@@ -1,4 +1,5 @@
-#!/usr/bin/env bash
+#!/bin/sh
+# 兼容极简 WSL（无 bash，仅 sh）与 Git Bash
 # WSL / Git Bash 一键运行脚本
 # 用法: ./run.sh strategies/multifactor.py
 #       ./run.sh scripts/run_factor_test.py

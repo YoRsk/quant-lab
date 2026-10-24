@@ -15,21 +15,25 @@
 
 ## 快速开始
 
-```bash
-pip install -r requirements.txt
+首次：`pip install -r requirements.txt`（首次跑会下载数据缓存到 data_cache/，约 1-2 分钟）。
 
-# 1. 跑主策略（首次运行会下载数据并缓存到 data_cache/，约几分钟）
-PYTHONPATH=src python strategies/multifactor.py
+三种运行方式任选：
 
-# 2. 单因子有效性检验（IC/分层/衰减/换手）
-PYTHONPATH=src python scripts/run_factor_test.py
+| 环境 | 命令 |
+|---|---|
+| **Windows 双击** | 文件管理器里双击 `run.bat` = 跑主策略 |
+| **Windows CMD / PowerShell** | `run.bat strategies\multifactor.py` 或 `.\run.ps1 strategies\multifactor.py` |
+| **WSL / Git Bash** | `./run.sh strategies/multifactor.py` |
 
-# 3. 过拟合三件套（参数敏感性/成本敏感性/蒙特卡洛+Deflated Sharpe）
-PYTHONPATH=src python scripts/run_sensitivity.py
+可跑的三个入口：
 
-# 4. 单元测试
-PYTHONPATH=src pytest tests/ -v
+```text
+strategies/multifactor.py     # 1. 主策略回测（净值曲线 + 绩效报告）
+scripts/run_factor_test.py    # 2. 因子有效性检验（IC/分层/衰减/换手）
+scripts/run_sensitivity.py    # 3. 过拟合三件套（参数/成本敏感性 + 蒙特卡洛）
 ```
+
+单元测试：`run.bat -m pytest tests -v`（或任何环境 `PYTHONPATH=src pytest tests/ -v`）。
 
 产出在 `outputs/`：`nav_curve.png`（净值曲线）、`report.md`（绩效与因子报告）、
 `param_heatmap.png` / `mc_sharpe_dist.png` / `sensitivity_report.md`（过拟合检验）。
