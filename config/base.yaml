@@ -44,3 +44,8 @@ strategy:
   factor_weights: equal         # 等权合成 z-score
   top_n: 30                     # 持仓数
   weighting: equal              # 持仓内等权
+  # Asness 思想落地项（见 outputs/ab_report.md）
+  beta_neutralize: true         # 因子打分先剔除市场 Beta（低波因子方向之谜的关键）
+  no_trade_band: 20             # 换手缓冲带宽度（名次）；0 = 关闭（原始全量换仓）
+  # ⚠ 该参数由全样本敏感性挑出（buffer=20 夏普最高），严格流程应在样本内挑选、
+  #   样本外验证后才可用。改回 false / 0 即回到第一版基线策略。

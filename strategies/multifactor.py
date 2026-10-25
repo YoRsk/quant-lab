@@ -27,8 +27,10 @@ from quant_lab.backtest.metrics import perf_summary
 from quant_lab.config import load_config
 from quant_lab.data.universe import BENCHMARK_ETFS, get_stock_pool
 from quant_lab.data.yf_loader import load_ohlcv
+from quant_lab.factors.neutralize import (cross_sectional_neutralize,
+                                         rolling_beta)
 from quant_lab.factors.price_factors import FACTOR_REGISTRY
-from quant_lab.portfolio.signals import combine_factors
+from quant_lab.portfolio.signals import combine_factors, zscore
 from quant_lab.portfolio.weights import build_weight_schedule
 
 OUT = Path(__file__).resolve().parents[1] / "outputs"
@@ -46,9 +48,15 @@ def run(cfg: dict, out_dir: Path = OUT) -> dict:
     stocks = [s for s in stocks if s in close.columns]  # 剔除下载失败的
     stock_close = close[stocks].dropna(how="all")
 
-    # ---- 因子 ----
+    # ---- 因子（可选：先做 Beta 中性化，对应 Asness 的低风险因子思想）----
     factor_names = cfg["strategy"]["factors"]
-    factors = {n: FACTOR_REGISTRY[n](stock_close) for n in factor_names}
+    raw_factors = {n: FACTOR_REGISTRY[n](stock_close) for n in factor_names}
+    if cfg["strategy"].get("beta_neutralize", False):
+        beta = rolling_beta(stock_close.pct_change(), close["SPY"].pct_change())
+        factors = {n: cross_sectional_neutralize(zscore(f), beta)
+                   for n, f in raw_factors.items()}
+    else:
+        factors = raw_factors
     combined = combine_factors(factors)
 
     # ---- 因子有效性检验（输出到报告）----
@@ -67,6 +75,7 @@ def run(cfg: dict, out_dir: Path = OUT) -> dict:
     schedule = build_weight_schedule(
         combined, rebal_dates, signal_lag_days=1,
         close_index=close.index, top_n=cfg["strategy"]["top_n"],
+        buffer=int(cfg["strategy"].get("no_trade_band", 0)),
     )
     engine = BacktestEngine(
         initial_cash=cap["initial_cash"],
